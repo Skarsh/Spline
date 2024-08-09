@@ -1,6 +1,7 @@
 package main
 
 import "core:fmt"
+import "core:math"
 import "core:math/linalg/glsl"
 import "core:os"
 import "core:path/filepath"
@@ -18,7 +19,7 @@ SplineType :: enum {
 }
 
 // UI state
-filename := "spline_config.txt"
+filename := "spline_config.spline"
 
 filename_edit_mode := false
 message: cstring
@@ -193,15 +194,19 @@ draw_file_browser :: proc() {
 			// TODO(Thomas): Use proper icons here, the default font map doesn't know what this is
 			icon := file.is_dir ? "📁" : "📄"
 
-			rl.DrawText(
-				strings.clone_to_cstring(
-					fmt.tprintf("%s %s", icon, file.name),
-				),
-				130,
-				y_pos + 5,
-				20,
-				rl.BLACK,
-			)
+
+			if file.is_dir {
+				// Deal with directories
+			} else {
+				// TODO(Thomas): Only show files with .spline file type
+				rl.DrawText(
+					strings.clone_to_cstring(fmt.tprintf("%s", file.name)),
+					130,
+					y_pos + 5,
+					20,
+					rl.BLACK,
+				)
+			}
 		}
 	}
 
@@ -275,6 +280,13 @@ main :: proc() {
 	// Initialize filename_buffer
 	current_directory = os.get_current_directory()
 	update_directory_files()
+
+	// Load image
+	sword_image := rl.LoadImage("weapon_sword_1.png")
+	sword_texture := rl.LoadTextureFromImage(sword_image)
+
+	animation_time: f32 = 1.0
+	current_animation_time: f32 = 0.0
 
 	for !rl.WindowShouldClose() {
 		// Update
@@ -470,6 +482,25 @@ main :: proc() {
 		if message_timer > 0 {
 			rl.DrawText(message, 10, 560, 20, rl.RED)
 			message_timer -= rl.GetFrameTime()
+		}
+
+		t := current_animation_time / animation_time
+
+		// Draw animation along the spline
+		p := get_spline_point_bezier_cubic(
+			control_points[0],
+			control_points[1],
+			control_points[2],
+			control_points[3],
+			t,
+		)
+
+		rl.DrawTextureEx(sword_texture, p.xy - 24, 0, 3, rl.WHITE)
+
+		if current_animation_time >= animation_time {
+			current_animation_time = 0
+		} else {
+			current_animation_time += rl.GetFrameTime()
 		}
 
 		// Draw file browser if active
