@@ -90,8 +90,8 @@ get_spline_point_bezier_quad :: proc(
 get_spline_point_bezier_cubic :: proc(
 	start_pos: glsl.vec2,
 	start_control_pos: glsl.vec2,
-	end_pos: glsl.vec2,
 	end_control_pos: glsl.vec2,
+	end_pos: glsl.vec2,
 	t: f32,
 ) -> glsl.vec2 {
 	point := glsl.vec2{}
