@@ -251,12 +251,10 @@ draw_file_browser :: proc() {
 }
 
 main :: proc() {
-	rl.InitWindow(800, 600, "Interactive Multi-Spline Renderer (Raylib)")
+	rl.InitWindow(800, 600, "Interactive Multi-Spline Renderer")
 	defer rl.CloseWindow()
 
 	rl.SetTargetFPS(60)
-
-	fmt.println("Raylib initialized successfully")
 
 	// Convert shader sources to C strings
 	vertex_shader_source_cstr := strings.clone_to_cstring(vertex_shader_source)
@@ -273,8 +271,6 @@ main :: proc() {
 		fragment_shader_source_cstr,
 	)
 	defer rl.UnloadShader(shader)
-
-	fmt.println("Shader loaded successfully")
 
 	// Initialize filename_buffer
 	current_directory = os.get_current_directory()
@@ -483,6 +479,4 @@ main :: proc() {
 
 		rl.EndDrawing()
 	}
-
-	fmt.println("Program ended normally")
 }
