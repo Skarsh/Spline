@@ -1,15 +1,15 @@
 package main
 
 import "core:fmt"
+import "core:math/linalg/glsl"
 import "core:os"
 import "core:path/filepath"
 import "core:strconv"
 import "core:strings"
+
 import rl "vendor:raylib"
 
-Point :: struct {
-	x, y: f32,
-}
+Point :: glsl.vec2
 
 SplineType :: enum {
 	Bezier,
@@ -18,7 +18,8 @@ SplineType :: enum {
 }
 
 // UI state
-filename_buffer: [256]u8
+filename := "spline_config.txt"
+
 filename_edit_mode := false
 message: cstring
 message_timer: f32 = 0
@@ -327,7 +328,6 @@ main :: proc() {
 	fmt.println("Shader loaded successfully")
 
 	// Initialize filename_buffer
-	copy(filename_buffer[:], "spline_config.txt")
 	current_directory = os.get_current_directory()
 	update_directory_files()
 
@@ -496,13 +496,13 @@ main :: proc() {
 		// UI elements for save/load
 		filename_edit_mode := rl.GuiTextBox(
 			rl.Rectangle{10, 520, 300, 30},
-			cast(cstring)(&filename_buffer[0]),
+			strings.clone_to_cstring(filename),
 			256,
 			filename_edit_mode,
 		)
 
 		if rl.GuiButton(rl.Rectangle{320, 520, 100, 30}, "Save") {
-			if save_configuration(string(filename_buffer[:])) {
+			if save_configuration(filename) {
 				message = "Configuration saved successfully"
 			} else {
 				message = "Failed to save configuration"
