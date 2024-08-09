@@ -1,2 +1,5 @@
 *.exe
 *.pdb
+
+# Default save config
+spline_config.txt
