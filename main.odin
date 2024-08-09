@@ -12,7 +12,7 @@ import rl "vendor:raylib"
 Point :: glsl.vec2
 
 SplineType :: enum {
-	Bezier,
+	BezierCubic,
 	CatmullRom,
 	BSpline,
 }
@@ -31,9 +31,9 @@ directory_files: []os.File_Info
 selected_file_index := -1
 scroll_offset := 0
 
-control_points := []Point{{100, 100}, {200, 300}, {400, 200}, {600, 400}}
+control_points := []Point{{75, 450}, {200, 200}, {400, 400}, {600, 200}}
 selected_point: int = -1
-current_spline_type := SplineType.Bezier
+current_spline_type := SplineType.BezierCubic
 
 // Vertex shader source code
 vertex_shader_source := `
@@ -57,57 +57,6 @@ void main()
     finalColor = vec4(0.0, 0.0, 1.0, 1.0);  // Blue color
 }
 `
-
-bezier_point :: proc(t: f32, p0, p1, p2, p3: Point) -> Point {
-	u := 1 - t
-	tt := t * t
-	uu := u * u
-	uuu := uu * u
-	ttt := tt * t
-
-	p := Point{}
-	p.x = uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x
-	p.y = uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y
-	return p
-}
-
-catmull_rom_point :: proc(t: f32, p0, p1, p2, p3: Point) -> Point {
-	t2 := t * t
-	t3 := t2 * t
-
-	p := Point{}
-	p.x =
-		0.5 *
-		((2 * p1.x) +
-				(-p0.x + p2.x) * t +
-				(2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
-				(-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3)
-	p.y =
-		0.5 *
-		((2 * p1.y) +
-				(-p0.y + p2.y) * t +
-				(2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
-				(-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3)
-	return p
-}
-
-b_spline_point :: proc(t: f32, p0, p1, p2, p3: Point) -> Point {
-	t2 := t * t
-	t3 := t2 * t
-
-	p := Point{}
-	p.x =
-		(1 - t3) / 6 * p0.x +
-		(3 * t3 - 6 * t2 + 4) / 6 * p1.x +
-		(-3 * t3 + 3 * t2 + 3 * t + 1) / 6 * p2.x +
-		t3 / 6 * p3.x
-	p.y =
-		(1 - t3) / 6 * p0.y +
-		(3 * t3 - 6 * t2 + 4) / 6 * p1.y +
-		(-3 * t3 + 3 * t2 + 3 * t + 1) / 6 * p2.y +
-		t3 / 6 * p3.y
-	return p
-}
 
 save_configuration :: proc(filename: string) -> bool {
 	file, err := os.open(filename, os.O_WRONLY | os.O_CREATE | os.O_TRUNC)
@@ -149,8 +98,8 @@ load_configuration :: proc(filename: string) -> bool {
 	// Read spline type
 	spline_type_str := strings.trim_space(lines[0])
 	switch spline_type_str {
-	case "Bezier":
-		current_spline_type = .Bezier
+	case "BezierCubic":
+		current_spline_type = .BezierCubic
 	case "CatmullRom":
 		current_spline_type = .CatmullRom
 	case "BSpline":
@@ -360,7 +309,7 @@ main :: proc() {
 
 			// Switch spline type
 			if rl.IsKeyPressed(.ONE) {
-				current_spline_type = .Bezier
+				current_spline_type = .BezierCubic
 			} else if rl.IsKeyPressed(.TWO) {
 				current_spline_type = .CatmullRom
 			} else if rl.IsKeyPressed(.THREE) {
@@ -412,29 +361,29 @@ main :: proc() {
 			t := f32(i) / f32(num_segments)
 			p: Point
 			switch current_spline_type {
-			case .Bezier:
-				p = bezier_point(
-					t,
+			case .BezierCubic:
+				p = get_spline_point_bezier_cubic(
 					control_points[0],
 					control_points[1],
 					control_points[2],
 					control_points[3],
+					t,
 				)
 			case .CatmullRom:
-				p = catmull_rom_point(
-					t,
+				p = get_spline_point_catmull_rom(
 					control_points[0],
 					control_points[1],
 					control_points[2],
 					control_points[3],
+					t,
 				)
 			case .BSpline:
-				p = b_spline_point(
-					t,
+				p = get_spline_point_basis(
 					control_points[0],
 					control_points[1],
 					control_points[2],
 					control_points[3],
+					t,
 				)
 			}
 			curve_points[i] = {p.x, p.y}
@@ -454,8 +403,15 @@ main :: proc() {
 		rl.EndShaderMode()
 
 		// Draw control points
-		for point in control_points {
+		for point, i in control_points {
 			rl.DrawCircleV({point.x, point.y}, 10, rl.RED)
+			rl.DrawText(
+				strings.clone_to_cstring(fmt.tprintf("P%d", i)),
+				i32(point.x),
+				i32(point.y),
+				15,
+				rl.BLACK,
+			)
 		}
 
 		rl.DrawText(

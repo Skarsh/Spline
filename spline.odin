@@ -38,12 +38,12 @@ get_spline_point_basis :: proc(
 	point := glsl.vec2{}
 
 	temp := [4]glsl.vec2{}
-	temp[0] = (-p1 + 3 * p2 - 3 * p3 + p4) / 6.0
-	temp[1] = (3 * p1 - 6 * p2 + 3 * p3) / 6.0
-	temp[2] = (-3 * p1 + 3 * p3) / 6.0
-	temp[3] = (p1 + 4 * p2 + p3) / 6.0
+	temp[0] = (-p1 + (3 * p2) - (3 * p3) + p4) / 6.0
+	temp[1] = ((3 * p1) - (6 * p2) + (3 * p3)) / 6.0
+	temp[2] = ((-3 * p1) + (3 * p3)) / 6.0
+	temp[3] = (p1 + (4 * p2) + p3) / 6.0
 
-	point = temp[3] + t * (temp[2] + t * (temp[1] + t * temp[0]))
+	point = temp[3] + t * (temp[2] + (t * (temp[1] + t * temp[0])))
 
 	return point
 }
@@ -61,7 +61,7 @@ get_spline_point_catmull_rom :: proc(
 	q0 := (-1 * t * t * t) + (2 * t * t) + (-1 * t)
 	q1 := (3 * t * t * t) + (-5 * t * t) + 2
 	q2 := (-3 * t * t * t) + (4 * t * t) + t
-	q3 := t * t * t - t * t
+	q3 := (t * t * t) - (t * t)
 
 	point = 0.5 * ((p1 * q0) + (p2 * q1) + (p3 * q2) + (p4 * q3))
 
