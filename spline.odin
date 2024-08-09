@@ -68,24 +68,6 @@ get_spline_point_catmull_rom :: proc(
 	return point
 }
 
-// Get spline for a given t [0.0 .. 1.0], Quadratic Bezier
-get_spline_point_bezier_quad :: proc(
-	start_pos: glsl.vec2,
-	control_pos: glsl.vec2,
-	end_pos: glsl.vec2,
-	t: f32,
-) -> glsl.vec2 {
-	point := glsl.vec2{}
-
-	a := math.pow(1.0 - t, 2)
-	b := 2.0 * (1.0 - t) * t
-	c := math.pow(t, 2)
-
-	point = a * start_pos + b * control_pos + c * end_pos
-
-	return point
-}
-
 // Get spline for a given t [0.0 .. 1.0], Cubic Bezier
 get_spline_point_bezier_cubic :: proc(
 	start_pos: glsl.vec2,
