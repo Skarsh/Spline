@@ -285,7 +285,7 @@ main :: proc() {
 	sword_image := rl.LoadImage("weapon_sword_1.png")
 	sword_texture := rl.LoadTextureFromImage(sword_image)
 
-	animation_time: f32 = 1.0
+	animation_time: f32 = 10.0
 	current_animation_time: f32 = 0.0
 
 	for !rl.WindowShouldClose() {
@@ -495,7 +495,33 @@ main :: proc() {
 			t,
 		)
 
-		rl.DrawTextureEx(sword_texture, p.xy - 24, 0, 3, rl.WHITE)
+		tangent_line_start, tangent_line_end :=
+			get_spline_tangent_line_bezier_cubic(
+				control_points[0],
+				control_points[1],
+				control_points[2],
+				control_points[3],
+				t,
+				100,
+			)
+
+		rl.DrawLineV(tangent_line_start.xy, tangent_line_end.xy, rl.RED)
+
+
+		normal_line_start, normal_line_end :=
+			get_spline_normal_line_bezier_cubic(
+				control_points[0],
+				control_points[1],
+				control_points[2],
+				control_points[3],
+				t,
+				100,
+			)
+
+		rl.DrawLineV(normal_line_start.xy, normal_line_end.xy, rl.BLACK)
+
+		//rl.DrawTextureEx(sword_texture, p.xy - 24, 0, 3, rl.WHITE)
+
 
 		if current_animation_time >= animation_time {
 			current_animation_time = 0
